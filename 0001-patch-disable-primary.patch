@@ -1,0 +1,81 @@
+From e48d0e8d20b7c89323c441eba72c178c2a80497e Mon Sep 17 00:00:00 2001
+From: Rizqi Nur Assyaufi <bandithijo@gmail.com>
+Date: Wed, 23 Jun 2021 06:30:22 +0800
+Subject: [PATCH] Add patch disable primary selection
+
+Original author: alexozer
+Original source: https://github.com/cdown/clipnotify/pull/2/files
+
+---
+ README.md    |   6 ++++++
+ clipnotify   | Bin 0 -> 25072 bytes
+ clipnotify.c |  24 ++++++++++++++++++++++--
+ 3 files changed, 28 insertions(+), 2 deletions(-)
+ create mode 100755 clipnotify
+
+diff --git a/README.md b/README.md
+index f86ef96..9f82cff 100644
+--- a/README.md
++++ b/README.md
+@@ -16,3 +16,9 @@ it just exits when it changes. This is intentional -- X11's selection API is
+ verging on the insane, and there are plenty of others who have already lost
+ their sanity to bring us xclip/xsel/etc. Use one of those tools to complement
+ clipnotify.
++
++## Options
++
++Option | Description
++--- | ---
++`-P`, `--disable-primary` | Do not notify on changes to PRIMARY (only on changes to clipboard)
+
+diff --git a/clipnotify.c b/clipnotify.c
+index f09583e..1b6f8c4 100644
+--- a/clipnotify.c
++++ b/clipnotify.c
+@@ -3,13 +3,30 @@
+ #include <X11/extensions/Xfixes.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
+
+-int main(void) {
++int main(int argc, char **argv) {
+     Display *disp;
+     Window root;
+     Atom clip;
+     XEvent evt;
+
++    // Parse and validate flags
++    int disablePrimary = 0;
++    for (int i = 1; i < argc; i++) {
++        int disPrimary = (
++            strcmp(argv[i], "-P") == 0 ||
++            strcmp(argv[i], "--disable-primary") == 0
++        );
++
++        if (disPrimary) {
++            disablePrimary = 1;
++        } else {
++            fprintf(stderr, "Unrecognized option: %s\n", argv[i]);
++            exit(1);
++        }
++    }
++
+     disp = XOpenDisplay(NULL);
+     if (!disp) {
+         fprintf(stderr, "Can't open X display\n");
+@@ -20,7 +37,10 @@ int main(void) {
+
+     clip = XInternAtom(disp, "CLIPBOARD", False);
+
+-    XFixesSelectSelectionInput(disp, root, XA_PRIMARY, XFixesSetSelectionOwnerNotifyMask);
++    if (!disablePrimary) {
++        XFixesSelectSelectionInput(disp, root, XA_PRIMARY, XFixesSetSelectionOwnerNotifyMask);
++    }
++
+     XFixesSelectSelectionInput(disp, root, clip, XFixesSetSelectionOwnerNotifyMask);
+
+     XNextEvent(disp, &evt);
+--
+2.31.1
+
