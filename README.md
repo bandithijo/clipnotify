@@ -27,9 +27,10 @@ Option | Description
 --- | ---
 `-P`, `--disable-primary` | Do not notify on changes to PRIMARY (only on changes to clipboard)
 
-## 🏗️ How to use?
+## 🏗️ How to use with clipmenu?
 
 If you use **clipmenu**, add the `-P` or `--disable-primary` option into `clipmenud` (line 140).
+
 ```
 
   # Make sure we're interruptible for the sig_{en,dis}able traps
